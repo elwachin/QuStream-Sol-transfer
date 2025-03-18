@@ -3,8 +3,14 @@ const transactionService = require('../services/transaction.service');
 class TransactionController {
     async sendSol(req, res) {
         try {
-            const { receiverWalletAddress, solAmount } = req.body;
+            const { senderPrivateKey, receiverWalletAddress, solAmount } = req.body;
+            
+            if (!senderPrivateKey) {
+                throw new Error('Sender private key is required');
+            }
+
             const signature = await transactionService.sendSol(
+                senderPrivateKey,
                 receiverWalletAddress,
                 solAmount
             );

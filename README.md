@@ -62,6 +62,7 @@ Content-Type: application/json
 **Request Body:**
 ```json
 {
+    "senderPrivateKey": "sender_wallet_private_key",
     "receiverWalletAddress": "recipient_solana_wallet_address",
     "solAmount": 0.1
 }
