@@ -64,7 +64,8 @@ Content-Type: application/json
 {
     "senderPrivateKey": "sender_wallet_private_key",
     "receiverWalletAddress": "recipient_solana_wallet_address",
-    "solAmount": 0.1
+    "solAmount": 0.1,
+    "qCode": "required_verification_code"
 }
 ```
 
@@ -93,11 +94,13 @@ The service includes validation for:
 - Insufficient funds
 - Network errors
 - Transaction failures
+- Invalid or missing QCode verification
 
 ## Security Considerations
 
 - Keep your admin private key secure and never commit it to version control
 - The service uses CORS and is configured to accept requests from all origins
+- QCode verification is required for all transactions as an additional security measure
 - Consider implementing rate limiting and additional security measures for production use
 
 
