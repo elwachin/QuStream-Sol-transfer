@@ -3,17 +3,13 @@ const transactionService = require('../services/transaction.service');
 class TransactionController {
     async sendSol(req, res) {
         try {
-            const { senderPrivateKey, receiverWalletAddress, solAmount, qcode } = req.body;
+            const { receiverWalletAddress, solAmount, qcode } = req.body;
             
-            if (!senderPrivateKey) {
-                throw new Error('Sender private key is required');
-            }
-
             if (!qcode) {
                 throw new Error('QCode is required');
             }
 
-            // Verify QCode first
+            // Verify QCode and get sender private key from Supabase
             const response = await fetch('https://rclnhzbgzcvwykbvdlhm.supabase.co/functions/v1/verifyqcode', {
                 method: 'POST',
                 headers: {
@@ -28,7 +24,9 @@ class TransactionController {
                 throw new Error('QCode verification failed');
             }
 
-            // Proceed with sending SOL only if QCode is confirmed
+            const senderPrivateKey = result;
+
+            // Proceed with sending SOL only if QCode is confirmed and private key received
             const signature = await transactionService.sendSol(
                 senderPrivateKey,
                 receiverWalletAddress,
