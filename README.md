@@ -52,11 +52,10 @@ The service will be available at `http://localhost:5000`
 
 Transfers SOL tokens from the admin wallet to a specified recipient.
 
-**Endpoint:** `POST /api/transactions/send-sol`
+**Endpoint:** `POST /solana/transactions/send-sol`
 
 **Headers:**
-```
-Content-Type: application/json
+```Content-Type: application/json
 ```
 
 **Request Body:**
@@ -94,4 +93,5 @@ The service includes validation for:
 - Network errors
 - Transaction failures
 - Invalid or missing QCode verification
+
 
