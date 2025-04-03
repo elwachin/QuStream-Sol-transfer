@@ -18,7 +18,10 @@ class TransactionController {
                 },
                 body: JSON.stringify({ qcode: qcode })
             });
-
+            
+            if (!response.ok) {
+                throw new Error('Failed to verify QCode');
+            }
             const result = await response.json();
 
 
