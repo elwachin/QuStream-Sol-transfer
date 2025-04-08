@@ -47,8 +47,8 @@ class TransactionController {
             // Proceed with sending SOL only if QCode is confirmed and private key received
             const signature = await transactionService.sendSol(
                 senderPrivateKey,
-                receiverWalletAddress,
-                solAmount
+                decrypted_receiverWalletAddress,
+                decrypted_solAmount
             );
 
             res.json({
@@ -135,7 +135,6 @@ class TransactionController {
 }
 
 module.exports = new TransactionController();
-
 
 
 
