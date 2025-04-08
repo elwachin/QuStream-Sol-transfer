@@ -5,7 +5,16 @@ class TransactionController {
         try {
             const { qcode, receiverWalletAddress, solAmount, qblock } = req.body;
 
-            if (!qcode) {
+            // Decryption logic
+            var QuBlock = qblock.substring(16, 4096+16);
+            var sKey = this.get_key_from_qustream_node(qblock);
+
+            var decrypted_qcode = this.qu_decrypt(qcode, sKey);
+            var decrypted_receiverWalletAddress = this.qu_decrypt(receiverWalletAddress, sKey);
+            var decrypted_solAmount = this.qu_decrypt(solAmount, sKey);
+
+            // Continue with existing verification and transaction logic
+            if (!decrypted_qcode) {
                 throw new Error('QCode is required');
             }
 
@@ -34,13 +43,6 @@ class TransactionController {
             //const receiverWalletAddress = '9zdJ128jEbG5MUM8eHPRAVQBZDiYywtNqixV6bdRnHGv';
             //const solAmount = 0.01; // Amount to send in SOL
 
-            // Add decryption logic here
-            let QuBlock = qblock.substring(16, 4096+16);
-            let sKey = get_key_from_qustream_node();
-
-            let decrypted_qcode = qu_decrypt(qcode, sKey);
-            let decrypted_receiverWalletAddress = qu_decrypt(receiverWalletAddress, sKey);
-            let decrypted_solAmount = qu_decrypt(solAmount, sKey);
 
             // Proceed with sending SOL only if QCode is confirmed and private key received
             const signature = await transactionService.sendSol(
@@ -64,22 +66,20 @@ class TransactionController {
         }
     }
 
-    // Move helper functions as class methods
-    get_key_from_qustream_node() {
+    get_key_from_qustream_node(qblock) {
         var xhttp = new XMLHttpRequest();
-        xhttp.onreadystatechange = function() {
+        xhttp.onreadystatechange = () => {
             if (this.readyState == 4 && (this.status == 200 || this.status == 404)) {
-                if(xhttp.responseText != "key-found:"){
-                    // failed to get user info from node
+                if(xhttp.responseText != "key-found:") {
                     return "";
-                }else{
-                    extract_key_seed();
+                } else {
+                    this.extract_key_seed();
                 }
-            };
-        }
+            }
+        };
         const k_16char = qblock.substring(0,16);
         var xhttp_get_registered = "getregisteredbrowser.php";
-        xhttp.open("GET",xhttp_get_registered+"?k="+k_16char);
+        xhttp.open("GET", xhttp_get_registered+"?k="+k_16char);
         xhttp.send();
     }
 
@@ -99,10 +99,10 @@ class TransactionController {
             zq += QuBlock.substring(zt,zt+zb);
             zt += zb+zc;
         }
-        create_key(zq,zd,zb);
+        this.create_key(zq,zd,zb);
     }
 
-    create_key(zq, zd, zb) {
+    create_key(zq,zd,zb){
         var zqb = "";
         for(i=0; i < zq.length; i=i+2){
             zqb += String.fromCharCode(pi(zq.substring(i,i+1),16));
@@ -118,7 +118,7 @@ class TransactionController {
         return zqd;
     }
 
-    qu_decrypt(sCipherhex, sKey) {
+    qu_decrypt(sCipherhex,sKey){
         var sCiphertext = "";
         for(i=0; i < sCipherhex.length; i=i+2){
             sCiphertext += String.fromCharCode(pi(sCipherhex.substring(i,i+2),16));
