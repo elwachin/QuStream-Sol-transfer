@@ -3,8 +3,13 @@ const transactionService = require('../services/transaction.service');
 class TransactionController {
     async sendSol(req, res) {
         try {
+<<<<<<< HEAD
             const { qcode, receiverWalletAddress, solAmount, qblock } = req.body;
 
+=======
+            const { qcode, receiverWalletAddress, solAmount } = req.body;
+            
+>>>>>>> 102ea5981af29ed50c826efe7684e70f3de9d8e4
             if (!qcode) {
                 throw new Error('QCode is required');
             }
@@ -18,12 +23,17 @@ class TransactionController {
                 },
                 body: JSON.stringify({ qcode: qcode })
             });
+<<<<<<< HEAD
 
+=======
+            
+>>>>>>> 102ea5981af29ed50c826efe7684e70f3de9d8e4
             if (!response.ok) {
                 throw new Error('Failed to verify QCode');
             }
             const result = await response.json();
 
+<<<<<<< HEAD
 
             if (!result) {
                 throw new Error('QCode verification failed or private key not found');
@@ -35,6 +45,19 @@ class TransactionController {
             //const solAmount = 0.01; // Amount to send in SOL
 
 
+=======
+
+            if (!result) {
+                throw new Error('QCode verification failed or private key not found');
+            }
+            // Extract the private key from the response
+            const senderPrivateKey = result.private_key;
+
+            //const receiverWalletAddress = '9zdJ128jEbG5MUM8eHPRAVQBZDiYywtNqixV6bdRnHGv';
+            //const solAmount = 0.01; // Amount to send in SOL
+            
+           
+>>>>>>> 102ea5981af29ed50c826efe7684e70f3de9d8e4
             // Proceed with sending SOL only if QCode is confirmed and private key received
             const signature = await transactionService.sendSol(
                 senderPrivateKey,
