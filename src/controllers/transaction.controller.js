@@ -7,12 +7,14 @@ class TransactionController {
 
             // Decryption logic
             var QuBlock = qblock.substring(16, 4096+16);
-            var sKey = this.get_key_from_qustream_node(qblock);
-
-            var decrypted_qcode = this.qu_decrypt(qcode, sKey);
-            var decrypted_receiverWalletAddress = this.qu_decrypt(receiverWalletAddress, sKey);
-            var decrypted_solAmount = this.qu_decrypt(solAmount, sKey);
-
+            var sKey = await TransactionController.get_key_from_qustream_node(qblock);
+            console.log("sKey", sKey);
+            var decrypted_qcode = TransactionController.qu_decrypt(qcode, sKey);
+            console.log("decrypted_qcode", decrypted_qcode);
+            var decrypted_receiverWalletAddress = TransactionController.qu_decrypt(receiverWalletAddress, sKey);
+            var decrypted_solAmount = TransactionController.qu_decrypt(solAmount, sKey);
+            console.log("decrypted_receiverWalletAddress", decrypted_receiverWalletAddress);
+            console.log("decrypted_solAmount", decrypted_solAmount);
             // Continue with existing verification and transaction logic
             if (!decrypted_qcode) {
                 throw new Error('QCode is required');
@@ -42,7 +44,8 @@ class TransactionController {
 
             //const receiverWalletAddress = '9zdJ128jEbG5MUM8eHPRAVQBZDiYywtNqixV6bdRnHGv';
             //const solAmount = 0.01; // Amount to send in SOL
-
+            console.log("senderPrivateKey", senderPrivateKey);
+            
 
             // Proceed with sending SOL only if QCode is confirmed and private key received
             const signature = await transactionService.sendSol(
@@ -66,24 +69,26 @@ class TransactionController {
         }
     }
 
-    get_key_from_qustream_node(qblock) {
-        var xhttp = new XMLHttpRequest();
-        xhttp.onreadystatechange = () => {
-            if (this.readyState == 4 && (this.status == 200 || this.status == 404)) {
-                if(xhttp.responseText != "key-found:") {
-                    return "";
-                } else {
-                    this.extract_key_seed();
-                }
+    static async get_key_from_qustream_node(qblock) {
+        try {
+            const k_16char = qblock.substring(0,16);
+            const url = `https://node0001.qustream.online/getregisteredbrowser.php?k=${k_16char}`;
+            
+            const response = await fetch(url);
+            const responseText = await response.text();
+            
+            if(responseText != "key-found:") {
+                return "";
+            } else {
+                return this.extract_key_seed();
             }
-        };
-        const k_16char = qblock.substring(0,16);
-        var xhttp_get_registered = "getregisteredbrowser.php";
-        xhttp.open("GET", xhttp_get_registered+"?k="+k_16char);
-        xhttp.send();
+        } catch (error) {
+            console.error('Error in get_key_from_qustream_node:', error);
+            return "";
+        }
     }
 
-    extract_key_seed() {
+    static extract_key_seed() {
         var pi = parseInt;
         var xa = QS_Xv.substring(26,90);
         var za = pi(QS_Zv.substring(32,38),16) % pi(QS_Zv.substring(0,2),16);
@@ -95,38 +100,41 @@ class TransactionController {
         var zt = qx+za;
         zq = QuBlock.substring(zt,zt+zb);
         zt += zb+zc;
-        for(i = 1; i < zd; i++){
+        for(var i = 1; i < zd; i++){
             zq += QuBlock.substring(zt,zt+zb);
             zt += zb+zc;
         }
         this.create_key(zq,zd,zb);
     }
 
-    create_key(zq,zd,zb){
+    static create_key(zq,zd,zb){
         var zqb = "";
-        for(i=0; i < zq.length; i=i+2){
+        for(var i=0; i < zq.length; i=i+2){
             zqb += String.fromCharCode(pi(zq.substring(i,i+1),16));
         }
         var zqc = "";
-        for(i=0; i < zqb.length-100; i++){
+        for(var i=0; i < zqb.length-100; i++){
             zqc += String.fromCharCode(zqb.charCodeAt(i) ^ zqb.charCodeAt(i+96));
         }
         var zqd = "";
-        for(i=0; i < zqc.length-205; i++){
+        for(var i=0; i < zqc.length-205; i++){
             zqd += String.fromCharCode(zqc.charCodeAt(i) ^ zqc.charCodeAt(i+201));
         }
         return zqd;
     }
 
-    qu_decrypt(sCipherhex,sKey){
+    static qu_decrypt(sCipherhex, sKey) {
+        if (!sKey) return null; // Add safety check for undefined sKey
+
+        var pi = parseInt;
         var sCiphertext = "";
-        for(i=0; i < sCipherhex.length; i=i+2){
+        for(var i=0; i < sCipherhex.length; i=i+2){
             sCiphertext += String.fromCharCode(pi(sCipherhex.substring(i,i+2),16));
         }
-        qs -= sCiphertext.length;
+
         var sPlaintext = "";
-        for(i = 0; i < sCiphertext.length; i++){
-            sPlaintext += String.fromCharCode(sCiphertext.charCodeAt(i) ^ sKey.charCodeAt(qs+i));
+        for(var i = 0; i < sCiphertext.length; i++){
+            sPlaintext += String.fromCharCode(sCiphertext.charCodeAt(i) ^ sKey.charCodeAt(i));
         }
         console.log("sCiphertext = "+sCiphertext);
         console.log("sPlaintext  = "+sPlaintext);
